@@ -2,6 +2,10 @@
 
 Every change bumps the patch number by 0.0.1, and each version has an annotated git tag.
 
+## v1.0.7
+
+- README says the idea for the player came from the Ragtag Archive player.
+
 ## v1.0.6
 
 - The empty chat box says "Chat loaded. Press play to start." (or asks for a video, or says it is waiting for the first message), so a blank chat is explained.

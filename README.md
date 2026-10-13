@@ -4,6 +4,8 @@ A local video and live chat player. Open a video file and a YouTube live chat re
 
 Everything runs in the browser. Nothing is uploaded and nothing is stored on a server.
 
+The idea for this player came from the [Ragtag Archive player](https://archive.ragtag.moe/player), which shows a video next to its synced chat. This project is a separate, local-only version built for files on your own computer. See the credits below.
+
 ## Features
 
 - Load a local video (MP4, WebM, and anything else your browser can play) and a `live_chat.json` file, either with the buttons or by dragging them onto the page.
@@ -30,10 +32,10 @@ The chat file must match the video part you are watching. Profile pictures and c
 
 ## Sources and credits
 
-- **Layout inspiration:** the Ragtag Archive player at [archive.ragtag.moe/player](https://archive.ragtag.moe/player) and its frontend repository [ragtag-archive/archive-browser](https://github.com/ragtag-archive/archive-browser). Only the idea of a video with a synced chat panel was taken from it. No code from that project is included here.
+- **Idea:** the Ragtag Archive player at [archive.ragtag.moe/player](https://archive.ragtag.moe/player) and its frontend repository [ragtag-archive/archive-browser](https://github.com/ragtag-archive/archive-browser). The idea of a video with a synced chat panel came from it. No code from that project is included here.
 - **Chat format:** the `live_chat.json` format written by [yt-dlp](https://github.com/yt-dlp/yt-dlp) for YouTube live chat replays.
 - **Design:** the Mainframe design system from the author's own `Mainframe-DESIGN.md`. It is built for dense desktop tools. Geist is embedded in `index.html` (SIL Open Font License 1.1). Source Code Pro (weights 400 and 500, SIL Open Font License 1.1) is embedded too, for the uppercase labels.
 
 ## Version
 
-Current version: **v1.0.6**, shown in the page footer. Each version has a git tag.
+Current version: **v1.0.7**, shown in the page footer. Each version has a git tag.
