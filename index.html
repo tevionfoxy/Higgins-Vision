@@ -245,36 +245,32 @@
     font: 400 0.875rem var(--font-body);
   }
   .chat-search:focus { border-color: var(--accent); outline: none; }
-  .toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--text-secondary);
+  .chat:empty::before {
+    content: attr(data-empty);
+    display: block;
+    padding: 0.8rem;
+    color: var(--muted-foreground);
+  }
+  /* Auto-scroll button: ghost when off, lit like the top bar buttons when on */
+  .chip {
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--foreground);
+    font: 500 0.875rem/1 var(--font-body);
     cursor: pointer;
-    user-select: none;
+    white-space: nowrap;
+    transition: background 150ms, border-color 150ms, color 150ms, transform 150ms;
   }
-  .toggle input { position: absolute; opacity: 0; pointer-events: none; }
-  .toggle .track {
-    position: relative;
-    width: 38px; height: 22px;
-    border-radius: 999px;
-    background: var(--input);
-    border: 1px solid var(--border-strong);
-    transition: border-color 220ms, background 220ms;
-    flex-shrink: 0;
+  .chip:hover { border-color: var(--border-strong); background: var(--row-hover); }
+  .chip:active { transform: scale(0.98); }
+  .chip[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--accent-bright);
   }
-  .toggle .track::after {
-    content: "";
-    position: absolute;
-    top: 3px; left: 3px;
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: var(--muted-foreground);
-    transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), background 220ms;
-  }
-  .toggle input:checked + .track { border-color: var(--accent); background: var(--accent-glow); }
-  .toggle input:checked + .track::after { background: var(--accent); transform: translateX(16px); }
-  .toggle input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .chat {
     flex: 1;
@@ -475,18 +471,13 @@
       <span class="label">Live chat</span>
       <span class="count" id="count"></span>
       <input class="chat-search" id="search" type="search" placeholder="Search" aria-label="Search messages" disabled>
-      <label class="toggle">
-        <input type="checkbox" id="autoscroll" checked>
-        <span class="track"></span>
-        Auto-scroll
-      </label>
+      <button class="chip" id="autoscroll" type="button" aria-pressed="true">Auto-scroll</button>
     </div>
-    <div class="chat" id="chat" role="list" aria-label="Chat messages"></div>
+    <div class="chat" id="chat" role="list" aria-label="Chat messages" data-empty="Load a video and a chat JSON to start. Click a message to jump the video to it."></div>
   </section>
 </main>
 
 <footer>
-  <span>Clicking a message seeks the video</span>
   <span>build v0.1.0</span>
 </footer>
 
@@ -501,6 +492,12 @@
   const countEl = $("count");
   const search = $("search");
   const autoscroll = $("autoscroll");
+  const isAutoScroll = () => autoscroll.getAttribute("aria-pressed") === "true";
+  autoscroll.addEventListener("click", () => {
+    const on = !isAutoScroll();
+    autoscroll.setAttribute("aria-pressed", String(on));
+    if (on) chat.scrollTop = chat.scrollHeight;
+  });
   const drop = $("drop");
   const empty = $("empty");
 
@@ -723,7 +720,7 @@
       shown = n;
       while (chat.children.length > MAX_ROWS) chat.removeChild(chat.firstChild);
     }
-    if (autoscroll.checked) chat.scrollTop = chat.scrollHeight;
+    if (isAutoScroll()) chat.scrollTop = chat.scrollHeight;
   }
 
   function setStatus(text, isError) {
