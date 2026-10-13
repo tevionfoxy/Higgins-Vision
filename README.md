@@ -4,6 +4,8 @@ A local video and live chat player. Open a video file and a YouTube live chat re
 
 Everything runs in the browser. Nothing is uploaded and nothing is stored on a server.
 
+**Live site:** https://higginsvision.francishigginsarchive.biz/
+
 The idea for this player came from the [Ragtag Archive player](https://archive.ragtag.moe/player), which shows a video next to its synced chat. This project is a separate, local-only version built for files on your own computer. See the credits below.
 
 ## Features
@@ -38,4 +40,4 @@ The chat file must match the video part you are watching. Profile pictures and c
 
 ## Version
 
-Current version: **v1.0.9**, shown in the page footer. Each version has a git tag.
+Current version: **v1.0.10**, shown in the page footer. Each version has a git tag.
