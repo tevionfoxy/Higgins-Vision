@@ -2,6 +2,11 @@
 
 Every change bumps the patch number by 0.0.1, and each version has an annotated git tag.
 
+## v1.0.3
+
+- Logo (TV with a snake on the screen) appears in the top bar next to Higgins Vision.
+- Logo source is in logo.svg.
+
 ## v1.0.2
 
 - Changelog lists every increment, and the footer and README show the current version.
