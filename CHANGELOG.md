@@ -2,6 +2,10 @@
 
 Every change bumps the patch number by 0.0.1, and each version has an annotated git tag.
 
+## v1.0.13
+
+- Download Chat JSONs button sits next to Choose chat JSON, and is renamed from Browse Chat JSONs.
+
 ## v1.0.12
 
 - Paste a YouTube link to play it in YouTube's own player, with the chat from your file synced to it.

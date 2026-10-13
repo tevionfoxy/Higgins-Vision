@@ -23,7 +23,7 @@ The idea for this player came from the [Ragtag Archive player](https://archive.r
 ## Usage
 
 1. Open `index.html` in a browser (Chrome, Edge or Firefox).
-2. Click **Choose video** and pick the video, then **Choose chat JSON** and pick the matching `live_chat.json`.
+2. Click **Choose video** and pick the video, then **Choose chat JSON** and pick the matching `live_chat.json`. To get chat files from the archive, click **Download Chat JSONs** beside it.
 3. Play the video. Click a chat message to seek to it.
 
 The chat file must match the video part you are watching. Profile pictures and channel emoji are loaded from YouTube's image servers, so they need an internet connection. If they can't load, the chat still works and shows the viewer's first letter or the emoji's `:shortcut:` text instead.
@@ -41,4 +41,4 @@ The chat file must match the video part you are watching. Profile pictures and c
 
 ## Version
 
-Current version: **v1.0.12**, shown in the page footer. Each version has a git tag.
+Current version: **v1.0.13**, shown in the page footer. Each version has a git tag.
