@@ -542,7 +542,7 @@
 </main>
 
 <footer>
-  <span>build v1.0.14</span>
+  <span>build v1.0.15</span>
 </footer>
 
 <script>
@@ -954,6 +954,11 @@
   }
 
   function loadYouTube(id) {
+    // YouTube refuses embeds from a file opened off disk (error 153), so say so instead of showing the error.
+    if (location.protocol === "file:") {
+      setStatus("YouTube needs the web version of this page. Open the live site instead.", true);
+      return;
+    }
     stopYouTube();
     if (videoUrl) { URL.revokeObjectURL(videoUrl); videoUrl = null; }
     video.pause();
@@ -972,7 +977,7 @@
         videoId: id,
         width: "100%",
         height: "100%",
-        playerVars: { playsinline: 1, rel: 0 },
+        playerVars: { playsinline: 1, rel: 0, origin: location.origin },
         events: {
           onReady: () => {
             ytReady = true;

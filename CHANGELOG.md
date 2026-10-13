@@ -2,6 +2,11 @@
 
 Every change bumps the patch number by 0.0.1, and each version has an annotated git tag.
 
+## v1.0.15
+
+- YouTube player sends its origin, which fixes the "Video player configuration error 153" on the web version.
+- Opening the page from disk shows a message to use the live site for YouTube links.
+
 ## v1.0.14
 
 - The empty chat hint puts "Click a message to jump the video to it." on its own line.
