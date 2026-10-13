@@ -527,6 +527,7 @@
       YouTube links play in YouTube's own player, so the video cannot be downloaded, and it plays only if its owner allows embedding.
       The chat still comes from your live_chat.json file, and it syncs to the YouTube player's time.
       It needs an internet connection. Subtitles from a file do not show on YouTube videos. Use a local file for offline playback and subtitles.
+      For YouTube links, use the live site at <a href="https://higginsvision.francishigginsarchive.biz/">higginsvision.francishigginsarchive.biz</a>, hosted on GitHub Pages. A copy of index.html opened off disk is for local files.
     </p>
   </section>
 
@@ -542,7 +543,7 @@
 </main>
 
 <footer>
-  <span>build v1.0.16</span>
+  <span>build v1.0.17</span>
 </footer>
 
 <script>
@@ -919,7 +920,8 @@
         window.onYouTubeIframeAPIReady = resolve;
         const s = document.createElement("script");
         s.src = "https://www.youtube.com/iframe_api";
-        s.onerror = () => reject(new Error("youtube api unavailable"));
+        // Forget a failed load so the next Load YouTube tries again.
+        s.onerror = () => { ytApi = null; s.remove(); reject(new Error("youtube api unavailable")); };
         document.head.appendChild(s);
       });
     }
@@ -968,11 +970,16 @@
     setStatus("Loading YouTube player...");
 
     loadYouTubeApi().then(() => {
+      // Another link or a local file replaced this one while the API was loading.
+      if (!host.isConnected) return;
       ytPlayer = new YT.Player(host, {
         videoId: id,
         width: "100%",
         height: "100%",
-        playerVars: { playsinline: 1, rel: 0, origin: location.origin },
+        // A page off disk or in a sandboxed frame has the origin "null", which YouTube cannot use.
+        playerVars: location.origin === "null"
+          ? { playsinline: 1, rel: 0 }
+          : { playsinline: 1, rel: 0, origin: location.origin },
         events: {
           onReady: () => {
             ytReady = true;
@@ -990,7 +997,9 @@
           },
         },
       });
-    }).catch(() => setStatus("Could not load the YouTube player. Check your connection.", true));
+    }).catch(() => {
+      if (host.isConnected) setStatus("Could not load the YouTube player. Check your connection.", true);
+    });
   }
 
   const ytInfo = $("yt-info");

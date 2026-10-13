@@ -2,6 +2,13 @@
 
 Every change bumps the patch number by 0.0.1, and each version has an annotated git tag.
 
+## v1.0.17
+
+- A failed YouTube player load can be retried without reloading the page.
+- Switching to another link or a local file while the YouTube player is still loading no longer leaves a stray player behind.
+- The YouTube player only sends its origin when the page has a real web origin.
+- The YouTube Info note and the README say YouTube links play on the live site, hosted on GitHub Pages.
+
 ## v1.0.16
 
 - Removed the check that blocked YouTube links when the page is opened from disk. The player is hosted on GitHub Pages, and the README points to the live site.

@@ -18,7 +18,7 @@ The idea for this player came from the [Ragtag Archive player](https://archive.r
 - Super Chats and memberships are highlighted.
 - Profile pictures and emoji are shown. Standard emoji display as characters, and channel emoji display as their pictures.
 - **Fullscreen Chat** puts the video and chat together on one screen. Press F or Escape to leave it.
-- **YouTube:** paste a YouTube link under the video to play it in YouTube's own player. The chat still comes from your `live_chat.json`. Press **Info** beside the box for the limits, such as embedding and internet access.
+- **YouTube:** paste a YouTube link under the video to play it in YouTube's own player. The chat still comes from your `live_chat.json`. YouTube links play on the live site, which is hosted on GitHub Pages. Press **Info** beside the box for the limits, such as embedding and internet access.
 
 ## Usage
 
@@ -41,4 +41,4 @@ The chat file must match the video part you are watching. Profile pictures and c
 
 ## Version
 
-Current version: **v1.0.16**, shown in the page footer. Each version has a git tag.
+Current version: **v1.0.17**, shown in the page footer. Each version has a git tag.
