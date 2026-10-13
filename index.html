@@ -432,6 +432,7 @@
     Choose chat JSON
     <input class="file-input" id="chat-file" type="file" accept=".json,.jsonl,application/json">
   </label>
+  <a class="btn btn--ghost" id="browse-chats" href="https://mainframe.francishigginsarchive.biz/Streams/Stream%20Chats/Live%20Chat%20JSONs/" target="_blank" rel="noopener noreferrer">Browse Chat JSONs</a>
   <button class="btn btn--ghost" id="fullscreen" type="button" aria-keyshortcuts="F">Fullscreen Chat</button>
 </header>
 
@@ -828,6 +829,11 @@
   }
 
   fsButton.addEventListener("click", toggleFullscreen);
+
+  // The chat folder opens in a new tab. Browsers do not let this page read those files, so save one and choose it here.
+  $("browse-chats").addEventListener("click", () => {
+    setStatus("Download a chat JSON from the new tab, then choose it here");
+  });
   document.addEventListener("fullscreenchange", updateFullscreenButton);
   // F toggles fullscreen unless the user is typing in the filter box. Escape leaves the fallback mode.
   window.addEventListener("keydown", (e) => {
