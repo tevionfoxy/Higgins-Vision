@@ -249,6 +249,20 @@
     font: 400 0.875rem var(--font-body);
   }
   .chat-search:focus { border-color: var(--accent); outline: none; }
+  .yt-row { display: flex; gap: 0.5rem; }
+  .yt-row .chat-search { flex: 1; }
+  .yt-note {
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: var(--muted-foreground);
+  }
+  main:fullscreen .yt-note,
+  main.is-fullscreen .yt-note { display: none; }
+  #yt-host { width: 100%; height: 100%; }
+  #yt-host iframe { width: 100%; height: 100%; border: 0; display: block; }
+  main:fullscreen .yt-row,
+  main.is-fullscreen .yt-row { display: none; }
   .chat:empty::before {
     content: attr(data-empty);
     display: block;
@@ -503,6 +517,16 @@
       </div>
       <video id="player" controls preload="metadata" hidden></video>
     </div>
+    <form class="yt-row" id="yt-form" autocomplete="off">
+      <input class="chat-search" id="yt-url" type="text" placeholder="Or paste a YouTube link" aria-label="YouTube link">
+      <button class="chip" id="yt-info" type="button" aria-expanded="false" aria-controls="yt-note">Info</button>
+      <button class="btn" type="submit">Load YouTube</button>
+    </form>
+    <p class="yt-note" id="yt-note" hidden>
+      YouTube links play in YouTube's own player, so the video cannot be downloaded, and it plays only if its owner allows embedding.
+      The chat still comes from your live_chat.json file, and it syncs to the YouTube player's time.
+      It needs an internet connection. Subtitles from a file do not show on YouTube videos. Use a local file for offline playback and subtitles.
+    </p>
   </section>
 
   <section class="panel chat-panel">
@@ -517,7 +541,7 @@
 </main>
 
 <footer>
-  <span>build v1.0.11</span>
+  <span>build v1.0.12</span>
 </footer>
 
 <script>
@@ -748,7 +772,7 @@
   }
 
   function sync() {
-    const n = upperBound(video.currentTime * 1000);
+    const n = upperBound(currentSec() * 1000);
     if (n === shown) return;
     if (n < shown || n - shown > MAX_ROWS) {
       rebuild(n);
@@ -767,8 +791,8 @@
   function updateEmptyHint() {
     let text;
     if (!messages.length) text = defaultHint;
-    else if (!video.src) text = "Chat loaded. Load a video to start.";
-    else if (video.paused) text = "Chat loaded. Press play to start.";
+    else if (!hasVideo()) text = "Chat loaded. Load a video to start.";
+    else if (isPaused()) text = "Chat loaded. Press play to start.";
     else text = "Waiting for the first message...";
     chat.dataset.empty = text;
   }
@@ -785,6 +809,7 @@
   // ---------- Loading ----------
 
   function loadVideo(file) {
+    stopYouTube();
     if (videoUrl) URL.revokeObjectURL(videoUrl);
     videoUrl = URL.createObjectURL(file);
     video.src = videoUrl;
@@ -857,7 +882,7 @@
     if (!row) return;
     const msg = messages[Number(row.dataset.index)];
     if (!msg) return;
-    video.currentTime = msg.offsetMs / 1000;
+    seekTo(msg.offsetMs / 1000);
   });
   chat.addEventListener("keydown", (e) => {
     if (e.key !== "Enter") return;
@@ -867,6 +892,122 @@
 
   search.addEventListener("input", () => {
     for (const row of chat.children) applyFilter(row);
+  });
+
+  // ---------- YouTube (YouTube's own embedded player; the chat still comes from your file) ----------
+
+  const ytForm = $("yt-form");
+  const ytInput = $("yt-url");
+  let ytPlayer = null;
+  let ytReady = false;
+  let ytTimer = null;
+  let ytApi = null;
+
+  // Accepts a watch, youtu.be, embed, live or shorts link, or the bare 11-character ID.
+  function youtubeId(text) {
+    const s = text.trim();
+    const m = s.match(/(?:youtu\.be\/|[?&]v=|\/embed\/|\/live\/|\/shorts\/)([A-Za-z0-9_-]{11})/);
+    if (m) return m[1];
+    return /^[A-Za-z0-9_-]{11}$/.test(s) ? s : null;
+  }
+
+  function loadYouTubeApi() {
+    if (window.YT && window.YT.Player) return Promise.resolve();
+    if (!ytApi) {
+      ytApi = new Promise((resolve, reject) => {
+        window.onYouTubeIframeAPIReady = resolve;
+        const s = document.createElement("script");
+        s.src = "https://www.youtube.com/iframe_api";
+        s.onerror = () => reject(new Error("youtube api unavailable"));
+        document.head.appendChild(s);
+      });
+    }
+    return ytApi;
+  }
+
+  // Whichever player is showing decides the time, play state and seeking.
+  function hasVideo() {
+    return ytPlayer !== null || !!video.src;
+  }
+  function currentSec() {
+    return ytReady ? ytPlayer.getCurrentTime() : video.currentTime;
+  }
+  function isPaused() {
+    return ytReady ? ytPlayer.getPlayerState() !== 1 : video.paused;
+  }
+  function seekTo(sec) {
+    if (ytReady) ytPlayer.seekTo(sec, true);
+    else video.currentTime = sec;
+  }
+
+  function stopYouTube() {
+    clearInterval(ytTimer);
+    ytTimer = null;
+    if (ytPlayer) {
+      try { ytPlayer.destroy(); } catch (err) { /* already gone */ }
+    }
+    ytPlayer = null;
+    ytReady = false;
+    const host = document.getElementById("yt-host");
+    if (host) host.remove();
+  }
+
+  function loadYouTube(id) {
+    stopYouTube();
+    if (videoUrl) { URL.revokeObjectURL(videoUrl); videoUrl = null; }
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+    video.hidden = true;
+    empty.hidden = true;
+
+    const host = document.createElement("div");
+    host.id = "yt-host";
+    drop.insertBefore(host, video);
+    setStatus("Loading YouTube player...");
+
+    loadYouTubeApi().then(() => {
+      ytPlayer = new YT.Player(host, {
+        videoId: id,
+        width: "100%",
+        height: "100%",
+        playerVars: { playsinline: 1, rel: 0 },
+        events: {
+          onReady: () => {
+            ytReady = true;
+            setStatus(`YouTube: ${id}`);
+            sync();
+            updateEmptyHint();
+            ytTimer = setInterval(sync, 250);
+          },
+          onStateChange: () => updateEmptyHint(),
+          onError: (e) => {
+            const code = e.data;
+            if (code === 101 || code === 150) setStatus("This YouTube video cannot be embedded. Choose a local file instead.", true);
+            else if (code === 100) setStatus("YouTube video not found or private.", true);
+            else setStatus("YouTube player error.", true);
+          },
+        },
+      });
+    }).catch(() => setStatus("Could not load the YouTube player. Check your connection.", true));
+  }
+
+  const ytInfo = $("yt-info");
+  const ytNote = $("yt-note");
+  ytInfo.addEventListener("click", () => {
+    const open = ytNote.hidden;
+    ytNote.hidden = !open;
+    ytInfo.setAttribute("aria-expanded", String(open));
+  });
+
+  ytForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const id = youtubeId(ytInput.value);
+    if (!id) {
+      setStatus("That does not look like a YouTube link", true);
+      return;
+    }
+    loadYouTube(id);
   });
 
   // ---------- Subtitles ----------
