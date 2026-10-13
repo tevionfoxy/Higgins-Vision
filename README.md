@@ -36,4 +36,4 @@ The chat file must match the video part you are watching. Profile pictures and c
 
 ## Version
 
-Current version: **v1.0.4**, shown in the page footer. Each version has a git tag.
+Current version: **v1.0.5**, shown in the page footer. Each version has a git tag.

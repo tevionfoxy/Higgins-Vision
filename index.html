@@ -516,7 +516,7 @@
 </main>
 
 <footer>
-  <span>build v1.0.4</span>
+  <span>build v1.0.5</span>
 </footer>
 
 <script>
@@ -778,7 +778,9 @@
     video.src = videoUrl;
     video.hidden = false;
     empty.hidden = true;
-    setStatus(`Video: ${file.name}`);
+    // Big streams can take a while to open, so say so until the first frame is ready.
+    setStatus(`Loading ${file.name}. Large streams can take a short while...`);
+    video.onloadeddata = () => setStatus(`Video: ${file.name}`);
     // Keep chat in sync if a chat file was loaded first.
     sync();
   }

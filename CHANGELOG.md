@@ -2,6 +2,10 @@
 
 Every change bumps the patch number by 0.0.1, and each version has an annotated git tag.
 
+## v1.0.5
+
+- Status line says the video is loading when a file is dropped in, and that large streams can take a short while.
+
 ## v1.0.4
 
 - Subtitles: choose an .srt or .vtt file, or drop it on the page. The Subtitles button turns them on and off.
