@@ -2,6 +2,10 @@
 
 Every change bumps the patch number by 0.0.1, and each version has an annotated git tag.
 
+## v1.0.4
+
+- Subtitles: choose an .srt or .vtt file, or drop it on the page. The Subtitles button turns them on and off.
+
 ## v1.0.3
 
 - Logo (TV with a snake on the screen) appears in the top bar next to Higgins Vision.

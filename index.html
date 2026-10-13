@@ -484,6 +484,11 @@
     Choose chat JSON
     <input class="file-input" id="chat-file" type="file" accept=".json,.jsonl,application/json">
   </label>
+  <label class="btn btn--ghost">
+    Choose subtitles
+    <input class="file-input" id="sub-file" type="file" accept=".srt,.vtt,text/vtt">
+  </label>
+  <button class="chip" id="subs-toggle" type="button" aria-pressed="true" hidden>Subtitles</button>
   <a class="btn btn--ghost" id="browse-chats" href="https://mainframe.francishigginsarchive.biz/Streams/Stream%20Chats/Live%20Chat%20JSONs/" target="_blank" rel="noopener noreferrer">Browse Chat JSONs</a>
   <button class="btn btn--ghost" id="fullscreen" type="button" aria-keyshortcuts="F">Fullscreen Chat</button>
 </header>
@@ -511,7 +516,7 @@
 </main>
 
 <footer>
-  <span>build v1.0.3</span>
+  <span>build v1.0.4</span>
 </footer>
 
 <script>
@@ -802,13 +807,15 @@
   function handleFile(file) {
     if (!file) return;
     const isJson = /\.(json|jsonl)$/i.test(file.name) || file.type === "application/json";
-    if (isJson) loadChat(file);
+    if (/\.(srt|vtt)$/i.test(file.name)) loadSubtitles(file);
+    else if (isJson) loadChat(file);
     else if (file.type.startsWith("video/") || /\.(mp4|webm|mkv|mov|m4v)$/i.test(file.name)) loadVideo(file);
     else setStatus(`Unsupported file: ${file.name}`, true);
   }
 
   $("video-file").addEventListener("change", (e) => handleFile(e.target.files[0]));
   $("chat-file").addEventListener("change", (e) => handleFile(e.target.files[0]));
+  $("sub-file").addEventListener("change", (e) => handleFile(e.target.files[0]));
 
   // Drag and drop anywhere on the page. Either file type works.
   ["dragenter", "dragover"].forEach((ev) =>
@@ -840,6 +847,57 @@
 
   search.addEventListener("input", () => {
     for (const row of chat.children) applyFilter(row);
+  });
+
+  // ---------- Subtitles ----------
+
+  // SRT uses commas in timestamps and has no header. WebVTT needs a dot and a WEBVTT header.
+  function toVtt(text) {
+    const clean = text.replace(/^﻿/, "").replace(/\r\n?/g, "\n")
+      .replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, "$1.$2").trim();
+    return /^WEBVTT/.test(clean) ? clean + "\n" : "WEBVTT\n\n" + clean + "\n";
+  }
+
+  const subsToggle = $("subs-toggle");
+  let subTrackEl = null;
+  let subUrl = null;
+  let subsOn = true;
+
+  function applySubsMode() {
+    if (subTrackEl && subTrackEl.track) subTrackEl.track.mode = subsOn ? "showing" : "hidden";
+    subsToggle.setAttribute("aria-pressed", String(subsOn));
+  }
+
+  function loadSubtitles(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const vtt = toVtt(String(reader.result || ""));
+      if (!vtt.includes("-->")) {
+        setStatus(`No subtitle cues found in ${file.name}`, true);
+        return;
+      }
+      if (subUrl) URL.revokeObjectURL(subUrl);
+      subUrl = URL.createObjectURL(new Blob([vtt], { type: "text/vtt" }));
+      if (!subTrackEl) {
+        subTrackEl = document.createElement("track");
+        subTrackEl.kind = "subtitles";
+        subTrackEl.label = "Subtitles";
+        subTrackEl.srclang = "en";
+        video.appendChild(subTrackEl);
+      }
+      subTrackEl.src = subUrl;
+      subsOn = true;
+      subsToggle.hidden = false;
+      applySubsMode();
+      setStatus(`Subtitles: ${file.name}`);
+    };
+    reader.onerror = () => setStatus(`Could not read ${file.name}`, true);
+    reader.readAsText(file);
+  }
+
+  subsToggle.addEventListener("click", () => {
+    subsOn = !subsOn;
+    applySubsMode();
   });
 
   // ---------- Fullscreen (video and chat together) ----------

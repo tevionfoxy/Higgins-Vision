@@ -10,6 +10,7 @@ Everything runs in the browser. Nothing is uploaded and nothing is stored on a s
 - Chat messages appear as the video plays. Seeking forward or back re-syncs the chat.
 - Click any message to jump the video to that moment.
 - Search box to filter the chat, and an auto-scroll toggle.
+- Subtitles: load an `.srt` or `.vtt` file with **Choose subtitles**, or drop it on the page. **Subtitles** turns them on and off.
 - Super Chats and memberships are highlighted.
 - Profile pictures and emoji are shown. Standard emoji display as characters, and channel emoji display as their pictures.
 - **Fullscreen Chat** puts the video and chat together on one screen. Press F or Escape to leave it.
@@ -35,4 +36,4 @@ The chat file must match the video part you are watching. Profile pictures and c
 
 ## Version
 
-Current version: **v1.0.3**, shown in the page footer. Each version has a git tag.
+Current version: **v1.0.4**, shown in the page footer. Each version has a git tag.
