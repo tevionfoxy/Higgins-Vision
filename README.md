@@ -34,8 +34,8 @@ The chat file must match the video part you are watching. Profile pictures and c
 
 - **Idea:** the Ragtag Archive player at [archive.ragtag.moe/player](https://archive.ragtag.moe/player) and its frontend repository [ragtag-archive/archive-browser](https://github.com/ragtag-archive/archive-browser). The idea of a video with a synced chat panel came from it. No code from that project is included here.
 - **Chat format:** the `live_chat.json` format written by [yt-dlp](https://github.com/yt-dlp/yt-dlp) for YouTube live chat replays.
-- **Design:** the Mainframe design system from the author's own `Mainframe-DESIGN.md`. It is built for dense desktop tools. Geist is embedded in `index.html` (SIL Open Font License 1.1). Source Code Pro (weights 400 and 500, SIL Open Font License 1.1) is embedded too, for the uppercase labels.
+- **Design reference:** the Mainframe design system, the author.s own spec for dense desktop tools. Geist is embedded in `index.html` (SIL Open Font License 1.1). Source Code Pro (weights 400 and 500, SIL Open Font License 1.1) is embedded too, for the uppercase labels.
 
 ## Version
 
-Current version: **v1.0.7**, shown in the page footer. Each version has a git tag.
+Current version: **v1.0.8**, shown in the page footer. Each version has a git tag.
