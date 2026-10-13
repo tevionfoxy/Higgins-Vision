@@ -2,6 +2,10 @@
 
 Every change bumps the patch number by 0.0.1, and each version has an annotated git tag.
 
+## v1.0.16
+
+- Removed the check that blocked YouTube links when the page is opened from disk. The player is hosted on GitHub Pages, and the README points to the live site.
+
 ## v1.0.15
 
 - YouTube player sends its origin, which fixes the "Video player configuration error 153" on the web version.
