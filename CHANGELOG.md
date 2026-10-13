@@ -2,6 +2,10 @@
 
 Every change bumps the patch number by 0.0.1, and each version has an annotated git tag.
 
+## v1.0.11
+
+- Browser tab icon is the Higgins Vision logo.
+
 ## v1.0.10
 
 - README links to the live site at higginsvision.francishigginsarchive.biz.
