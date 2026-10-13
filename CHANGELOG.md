@@ -2,6 +2,10 @@
 
 Every change bumps the patch number by 0.0.1, and each version has an annotated git tag.
 
+## v1.0.14
+
+- The empty chat hint puts "Click a message to jump the video to it." on its own line.
+
 ## v1.0.13
 
 - Download Chat JSONs button sits next to Choose chat JSON, and is renamed from Browse Chat JSONs.

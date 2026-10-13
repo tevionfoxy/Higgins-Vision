@@ -266,6 +266,7 @@
   .chat:empty::before {
     content: attr(data-empty);
     display: block;
+    white-space: pre-line;
     padding: 0.8rem;
     color: var(--muted-foreground);
     text-align: center;
@@ -536,12 +537,12 @@
       <input class="chat-search" id="search" type="search" placeholder="Search" aria-label="Search messages" disabled>
       <button class="chip" id="autoscroll" type="button" aria-pressed="true">Auto-scroll</button>
     </div>
-    <div class="chat" id="chat" role="list" aria-label="Chat messages" data-empty="Load a video and a chat JSON to start. Click a message to jump the video to it."></div>
+    <div class="chat" id="chat" role="list" aria-label="Chat messages" data-empty="Load a video and a chat JSON to start.&#10;Click a message to jump the video to it."></div>
   </section>
 </main>
 
 <footer>
-  <span>build v1.0.13</span>
+  <span>build v1.0.14</span>
 </footer>
 
 <script>
