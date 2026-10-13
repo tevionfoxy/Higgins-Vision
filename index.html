@@ -516,7 +516,7 @@
 </main>
 
 <footer>
-  <span>build v1.0.5</span>
+  <span>build v1.0.6</span>
 </footer>
 
 <script>
@@ -761,6 +761,17 @@
     if (isAutoScroll()) chat.scrollTop = chat.scrollHeight;
   }
 
+  // The empty chat box says what to do next, so a blank chat before the first message is not confusing.
+  const defaultHint = chat.dataset.empty;
+  function updateEmptyHint() {
+    let text;
+    if (!messages.length) text = defaultHint;
+    else if (!video.src) text = "Chat loaded. Load a video to start.";
+    else if (video.paused) text = "Chat loaded. Press play to start.";
+    else text = "Waiting for the first message...";
+    chat.dataset.empty = text;
+  }
+
   function setStatus(text, isError) {
     statusEl.textContent = text;
     statusEl.classList.toggle("error", !!isError);
@@ -780,7 +791,10 @@
     empty.hidden = true;
     // Big streams can take a while to open, so say so until the first frame is ready.
     setStatus(`Loading ${file.name}. Large streams can take a short while...`);
-    video.onloadeddata = () => setStatus(`Video: ${file.name}`);
+    video.onloadeddata = () => {
+      setStatus(`Video: ${file.name}`);
+      updateEmptyHint();
+    };
     // Keep chat in sync if a chat file was loaded first.
     sync();
   }
@@ -801,6 +815,7 @@
       const note = result.skipped ? `, skipped ${result.skipped} bad lines` : "";
       setStatus(`Chat: ${file.name}${note}`);
       sync();
+      updateEmptyHint();
     };
     reader.onerror = () => setStatus(`Could not read ${file.name}`, true);
     reader.readAsText(file);
@@ -831,6 +846,8 @@
   // ---------- Sync and interaction ----------
 
   video.addEventListener("timeupdate", sync);
+  video.addEventListener("play", updateEmptyHint);
+  video.addEventListener("pause", updateEmptyHint);
   video.addEventListener("seeked", sync);
   video.addEventListener("error", () => setStatus("Video could not be played. Try MP4 or WebM.", true));
 
