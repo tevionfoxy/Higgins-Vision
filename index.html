@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="en" data-font="default">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Higgins Vision</title>
+<style>
+  /* Mainframe tokens (Design MD/Mainframe-DESIGN.md) */
+  :root {
+    --background: #171717;
+    --card: #171717;
+    --muted: #1f1f1f;
+    --input: #0f0f0f;
+    --foreground: #fafafa;
+    --text-secondary: #b4b4b4;
+    --muted-foreground: #898989;
+    --accent: #3ecf8e;
+    --accent-bright: #00c573;
+    --accent-glow: rgba(62, 207, 142, 0.3);
+    --highlight-bg: rgba(62, 207, 142, 0.22);
+    --border-subtle: #242424;
+    --border: #2e2e2e;
+    --border-strong: #363636;
+    --row-hover: rgba(255, 255, 255, 0.04);
+    --row-sel: rgba(62, 207, 142, 0.08);
+    --destructive: #ef4444;
+    --warning: #f5a524;
+    --font-body: "Geist", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-label: "Source Code Pro", "Office Code Pro", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font: 400 0.875rem/1.45 var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .label {
+    font-family: var(--font-label);
+    font-size: 0.75rem;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* Top bar */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1.75rem;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--background);
+  }
+  .brand {
+    font-family: var(--font-label);
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .status {
+    font-family: var(--font-label);
+    font-size: 0.75rem;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    margin-right: auto;
+    max-width: 55vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .status::before {
+    content: "";
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+  .status.error { color: var(--destructive); }
+  .status.error::before { background: var(--destructive); }
+
+  /* Buttons: 6px radius, outline by default */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.1rem;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--accent);
+    font: 500 0.875rem/1 var(--font-body);
+    cursor: pointer;
+    transition: background 150ms, color 150ms, border-color 150ms, box-shadow 150ms, transform 100ms;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--accent); color: #0f0f0f; }
+  .btn:active { transform: scale(0.98); }
+  .btn:focus-visible, .chat-search:focus-visible, .row:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .btn--solid { background: var(--accent); color: #0f0f0f; }
+  .btn--solid:hover { box-shadow: 0 0 0 1px var(--accent-bright), 0 0 18px 2px color-mix(in srgb, var(--accent) 60%, transparent); }
+  .btn--ghost {
+    border-color: var(--border);
+    color: var(--foreground);
+  }
+  .btn--ghost:hover { background: var(--row-hover); border-color: var(--border-strong); color: var(--foreground); }
+  .btn:disabled { opacity: 0.4; cursor: default; pointer-events: none; }
+  .file-input { display: none; }
+
+  /* Top bar buttons use SubSleuth's lit-chip look (Fuzzy toggle when on) and glow on hover (Search button). */
+  .topbar .btn {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--accent-bright);
+    transition: background 150ms, border-color 150ms, color 150ms, box-shadow 200ms, transform 150ms;
+  }
+  .topbar .btn:hover {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border-color: var(--accent-bright);
+    color: var(--accent-bright);
+    box-shadow: 0 0 0 1px var(--accent-bright),
+                0 0 18px 2px color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+  .topbar .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Layout */
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+    gap: 1.25rem;
+    padding: 1.25rem 1.75rem;
+    height: calc(100% - 57px - 2.5rem);
+    min-height: 0;
+  }
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .stage {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 0;
+  }
+  .video-wrap {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--input);
+    border: 1px dashed var(--border-strong);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 150ms;
+  }
+  .video-wrap.over { border-color: var(--accent); }
+  video {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    background: #000;
+  }
+  .empty {
+    color: var(--muted-foreground);
+    text-align: center;
+    padding: 2rem;
+  }
+  .empty strong {
+    display: block;
+    color: var(--foreground);
+    font-weight: 500;
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .chat-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .count {
+    font-family: var(--font-label);
+    font-size: 0.8rem;
+    color: var(--accent);
+    background: rgba(62, 207, 142, 0.1);
+    border: 1px solid var(--accent-glow);
+    border-radius: 999px;
+    padding: 0.15rem 0.75rem;
+  }
+  .count:empty { display: none; }
+  .chat-search {
+    flex: 1;
+    min-width: 120px;
+    background: var(--input);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5rem 0.65rem;
+    font: 400 0.875rem var(--font-body);
+  }
+  .chat-search:focus { border-color: var(--accent); outline: none; }
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle input { position: absolute; opacity: 0; pointer-events: none; }
+  .toggle .track {
+    position: relative;
+    width: 38px; height: 22px;
+    border-radius: 999px;
+    background: var(--input);
+    border: 1px solid var(--border-strong);
+    transition: border-color 220ms, background 220ms;
+    flex-shrink: 0;
+  }
+  .toggle .track::after {
+    content: "";
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--muted-foreground);
+    transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), background 220ms;
+  }
+  .toggle input:checked + .track { border-color: var(--accent); background: var(--accent-glow); }
+  .toggle input:checked + .track::after { background: var(--accent); transform: translateX(16px); }
+  .toggle input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .chat {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--input);
+  }
+  .avatar {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    color: var(--muted-foreground);
+    font: 500 0.8rem/1 var(--font-label);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .avatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 3.5rem 32px 1fr;
+    gap: 0.6rem;
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: background 120ms;
+  }
+  .row:hover { background: var(--row-hover); }
+  .row.super {
+    border-left: 2px solid var(--accent);
+    background: var(--row-sel);
+  }
+  .row.member { border-left: 2px solid var(--border-strong); }
+  .row .time {
+    font-family: var(--font-label);
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    font-variant-numeric: tabular-nums;
+    padding-top: 0.1rem;
+  }
+  .row .text { min-width: 0; }
+  .row .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+  .row .who {
+    font-weight: 500;
+    color: var(--text-secondary);
+    overflow-wrap: break-word;
+    min-width: 0;
+  }
+  .row .amount {
+    font-family: var(--font-label);
+    font-size: 0.75rem;
+    color: var(--accent);
+  }
+  /* Words wrap at spaces. A word is only split if it is longer than the whole line. */
+  .row .body {
+    color: var(--foreground);
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+  .row .body img.emoji {
+    display: inline-block;
+    width: 1.35em;
+    height: 1.35em;
+    vertical-align: -0.3em;
+  }
+  .row[hidden] { display: none; }
+  .row.hit .body mark, .row mark {
+    background: var(--highlight-bg);
+    color: inherit;
+    border-radius: 3px;
+  }
+
+  /* Fullscreen: the whole main area (video and chat together) fills the screen */
+  main:fullscreen,
+  main.is-fullscreen {
+    height: 100vh;
+    padding: 1rem 1.25rem;
+    box-sizing: border-box;
+    background: var(--background);
+  }
+  main.is-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    margin: 0;
+    max-width: none;
+  }
+  main:fullscreen .panel,
+  main.is-fullscreen .panel { min-height: 0; }
+
+  /* Fullscreen: no outer padding, gaps or rounded frames, so the video and chat use every pixel */
+  main:fullscreen,
+  main.is-fullscreen {
+    padding: 0;
+    gap: 0;
+  }
+  main:fullscreen .panel,
+  main.is-fullscreen .panel {
+    border: none;
+    border-radius: 0;
+    padding: 0;
+  }
+  main:fullscreen .stage,
+  main.is-fullscreen .stage { gap: 0; }
+  main:fullscreen .video-wrap,
+  main.is-fullscreen .video-wrap {
+    border: none;
+    border-radius: 0;
+  }
+  main:fullscreen .chat-panel,
+  main.is-fullscreen .chat-panel {
+    padding: 0.5rem 0.6rem;
+    border-left: 1px solid var(--border-subtle);
+  }
+  main:fullscreen .chat,
+  main.is-fullscreen .chat {
+    border: none;
+    border-radius: 0;
+  }
+
+  footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 1.75rem;
+    border-top: 1px solid var(--border-subtle);
+    font-family: var(--font-label);
+    font-size: 0.7rem;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* Stack under 760px */
+  @media (max-width: 760px) {
+    main {
+      grid-template-columns: 1fr;
+      height: auto;
+      padding: 1rem;
+    }
+    .panel { padding: 1rem; }
+    .video-wrap { aspect-ratio: 16 / 9; flex: none; }
+    .chat { min-height: 220px; max-height: 60vh; }
+    .topbar { padding: 0.75rem 1rem; }
+    .brand { margin-right: 0; }
+    footer { padding: 0.6rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Higgins Vision</div>
+  <div class="status" id="status" role="status">No files loaded</div>
+  <label class="btn btn--ghost">
+    Choose video
+    <input class="file-input" id="video-file" type="file" accept="video/*">
+  </label>
+  <label class="btn btn--ghost">
+    Choose chat JSON
+    <input class="file-input" id="chat-file" type="file" accept=".json,.jsonl,application/json">
+  </label>
+  <button class="btn btn--ghost" id="fullscreen" type="button" aria-keyshortcuts="F">Fullscreen Chat</button>
+</header>
+
+<main>
+  <section class="panel stage">
+    <div class="video-wrap" id="drop">
+      <div class="empty" id="empty">
+        <strong>Drop a video here</strong>
+        Or drop a live_chat.json. Files stay on this computer.
+      </div>
+      <video id="player" controls preload="metadata" hidden></video>
+    </div>
+  </section>
+
+  <section class="panel chat-panel">
+    <div class="chat-head">
+      <span class="label">Live chat</span>
+      <span class="count" id="count"></span>
+      <input class="chat-search" id="search" type="search" placeholder="Search" aria-label="Search messages" disabled>
+      <label class="toggle">
+        <input type="checkbox" id="autoscroll" checked>
+        <span class="track"></span>
+        Auto-scroll
+      </label>
+    </div>
+    <div class="chat" id="chat" role="list" aria-label="Chat messages"></div>
+  </section>
+</main>
+
+<footer>
+  <span>Clicking a message seeks the video</span>
+  <span>build v0.1.0</span>
+</footer>
+
+<script>
+(() => {
+  const MAX_ROWS = 400;
+
+  const $ = (id) => document.getElementById(id);
+  const video = $("player");
+  const chat = $("chat");
+  const statusEl = $("status");
+  const countEl = $("count");
+  const search = $("search");
+  const autoscroll = $("autoscroll");
+  const drop = $("drop");
+  const empty = $("empty");
+
+  let messages = [];   // sorted by offsetMs
+  let shown = 0;       // number of messages (from the start) that are at or before currentTime
+  let videoUrl = null;
+
+  // ---------- Parsing ----------
+
+  const RENDERERS = {
+    liveChatTextMessageRenderer: "chat",
+    liveChatPaidMessageRenderer: "super",
+    liveChatPaidStickerRenderer: "super",
+    liveChatMembershipItemRenderer: "member",
+  };
+
+  // Text from {simpleText} or {runs}. Emoji fall back to their :shortcut: text so nothing needs the network.
+  function runsText(m) {
+    if (!m) return "";
+    if (typeof m.simpleText === "string") return m.simpleText;
+    if (!Array.isArray(m.runs)) return "";
+    return m.runs.map((r) => {
+      if (typeof r.text === "string") return r.text;
+      if (r.emoji) return (r.emoji.shortcuts && r.emoji.shortcuts[0]) || "";
+      return "";
+    }).join("");
+  }
+
+  // Pick the thumbnail closest to 64px: sharp at 32px display and on high-DPI screens.
+  function avatarUrl(photo) {
+    const thumbs = (photo && photo.thumbnails) || [];
+    if (!thumbs.length) return "";
+    let best = thumbs[0];
+    for (const t of thumbs) {
+      if (Math.abs((t.width || 0) - 64) < Math.abs((best.width || 0) - 64)) best = t;
+    }
+    return best.url || "";
+  }
+
+  // Message runs as parts: {text} for words, {emoji} for an emoji character, {img, alt} for a channel emoji picture.
+  function runParts(m) {
+    if (!m) return [];
+    if (typeof m.simpleText === "string") return [{ text: m.simpleText }];
+    if (!Array.isArray(m.runs)) return [];
+    return m.runs.map((r) => {
+      if (typeof r.text === "string") return { text: r.text };
+      if (!r.emoji) return { text: "" };
+      const e = r.emoji;
+      const shortcut = (e.shortcuts && e.shortcuts[0]) || "";
+      // Standard emoji: emojiId is the character. Add the emoji variant selector to hearts and similar symbols.
+      if (!e.isCustomEmoji && e.emojiId) {
+        const ch = /^[☀-➿]$/.test(e.emojiId) ? e.emojiId + "️" : e.emojiId;
+        return { emoji: ch, alt: shortcut };
+      }
+      const url = avatarUrl(e.image);
+      if (url) return { img: url, alt: shortcut };
+      return { text: shortcut };
+    });
+  }
+
+  function normalize(item, offsetMs) {
+    const key = Object.keys(item).find((k) => k in RENDERERS);
+    if (!key) return null;
+    const r = item[key];
+    const kind = RENDERERS[key];
+    const parts = runParts(r.message);
+    const bodyParts = parts.length ? parts : runParts(r.headerSubtext);
+    return {
+      offsetMs,
+      kind,
+      author: runsText(r.authorName) || "Unknown",
+      avatar: avatarUrl(r.authorPhoto),
+      parts: bodyParts,
+      // Plain text for the filter box: emoji count as their shortcut.
+      body: bodyParts.map((p) => p.text ?? p.emoji ?? p.alt ?? "").join(""),
+      amount: runsText(r.purchaseAmountText),
+    };
+  }
+
+  // yt-dlp live_chat.json is JSON lines. Each line has videoOffsetTimeMsec and a replayChatItemAction.
+  function parseChat(text) {
+    const out = [];
+    let skipped = 0;
+    for (const raw of text.split(/\r?\n/)) {
+      const line = raw.trim();
+      if (!line) continue;
+      let obj;
+      try { obj = JSON.parse(line); } catch { skipped++; continue; }
+      // Newer yt-dlp exports put the offset inside replayChatItemAction; older ones put it on the line.
+      const replay = obj.replayChatItemAction || {};
+      const offsetMs = Number(replay.videoOffsetTimeMsec ?? obj.videoOffsetTimeMsec);
+      if (!Number.isFinite(offsetMs)) continue;
+      const actions = replay.actions || [];
+      for (const a of actions) {
+        const item = a.addChatItemAction && a.addChatItemAction.item;
+        if (!item) continue;
+        const msg = normalize(item, offsetMs);
+        if (msg) out.push(msg);
+      }
+    }
+    out.sort((a, b) => a.offsetMs - b.offsetMs);
+    return { messages: out, skipped };
+  }
+
+  // ---------- Rendering ----------
+
+  function fmt(ms) {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    const pad = (n) => String(n).padStart(2, "0");
+    return h ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
+  }
+
+  function makeRow(i) {
+    const msg = messages[i];
+    const row = document.createElement("div");
+    row.className = "row " + msg.kind;
+    row.setAttribute("role", "listitem");
+    row.tabIndex = 0;
+    row.dataset.index = String(i);
+
+    const time = document.createElement("span");
+    time.className = "time";
+    time.textContent = fmt(msg.offsetMs);
+
+    const avatar = document.createElement("span");
+    avatar.className = "avatar";
+    avatar.textContent = (msg.author.replace(/^@/, "")[0] || "?").toUpperCase();
+    if (msg.avatar) {
+      const img = document.createElement("img");
+      img.alt = "";
+      img.loading = "lazy";
+      img.referrerPolicy = "no-referrer";
+      img.src = msg.avatar;
+      // If the picture cannot load (offline, removed), the initial behind it shows instead.
+      img.onerror = () => img.remove();
+      avatar.appendChild(img);
+    }
+
+    // Username and amount on one line, the message underneath it.
+    const text = document.createElement("div");
+    text.className = "text";
+    const head = document.createElement("div");
+    head.className = "head";
+    const who = document.createElement("span");
+    who.className = "who";
+    who.textContent = msg.author;
+    head.appendChild(who);
+
+    if (msg.amount) {
+      const amt = document.createElement("span");
+      amt.className = "amount";
+      amt.textContent = msg.amount;
+      head.appendChild(amt);
+    }
+
+    const body = document.createElement("div");
+    body.className = "body";
+    for (const part of msg.parts) {
+      if (part.emoji) {
+        body.appendChild(document.createTextNode(part.emoji));
+      } else if (part.img) {
+        const img = document.createElement("img");
+        img.className = "emoji";
+        img.alt = part.alt;
+        img.loading = "lazy";
+        img.referrerPolicy = "no-referrer";
+        img.src = part.img;
+        // If the picture fails, show the shortcut text (":name:") in its place.
+        img.onerror = () => img.replaceWith(document.createTextNode(part.alt));
+        body.appendChild(img);
+      } else {
+        body.appendChild(document.createTextNode(part.text || ""));
+      }
+    }
+    text.append(head, body);
+
+    row.append(time, avatar, text);
+    applyFilter(row);
+    return row;
+  }
+
+  function applyFilter(row) {
+    const q = search.value.trim().toLowerCase();
+    if (!q) { row.hidden = false; return; }
+    const msg = messages[Number(row.dataset.index)];
+    row.hidden = !(msg.author + " " + msg.body + " " + msg.amount).toLowerCase().includes(q);
+  }
+
+  function upperBound(ms) {
+    // first index whose offsetMs is greater than ms
+    let lo = 0, hi = messages.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (messages[mid].offsetMs <= ms) lo = mid + 1; else hi = mid;
+    }
+    return lo;
+  }
+
+  function rebuild(n) {
+    chat.textContent = "";
+    const start = Math.max(0, n - MAX_ROWS);
+    const frag = document.createDocumentFragment();
+    for (let i = start; i < n; i++) frag.appendChild(makeRow(i));
+    chat.appendChild(frag);
+    shown = n;
+  }
+
+  function sync() {
+    const n = upperBound(video.currentTime * 1000);
+    if (n === shown) return;
+    if (n < shown || n - shown > MAX_ROWS) {
+      rebuild(n);
+    } else {
+      const frag = document.createDocumentFragment();
+      for (let i = shown; i < n; i++) frag.appendChild(makeRow(i));
+      chat.appendChild(frag);
+      shown = n;
+      while (chat.children.length > MAX_ROWS) chat.removeChild(chat.firstChild);
+    }
+    if (autoscroll.checked) chat.scrollTop = chat.scrollHeight;
+  }
+
+  function setStatus(text, isError) {
+    statusEl.textContent = text;
+    statusEl.classList.toggle("error", !!isError);
+  }
+
+  function updateCount() {
+    countEl.textContent = messages.length ? `${messages.length} messages` : "";
+  }
+
+  // ---------- Loading ----------
+
+  function loadVideo(file) {
+    if (videoUrl) URL.revokeObjectURL(videoUrl);
+    videoUrl = URL.createObjectURL(file);
+    video.src = videoUrl;
+    video.hidden = false;
+    empty.hidden = true;
+    setStatus(`Video: ${file.name}`);
+    // Keep chat in sync if a chat file was loaded first.
+    sync();
+  }
+
+  function loadChat(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = parseChat(String(reader.result || ""));
+      messages = result.messages;
+      shown = 0;
+      chat.textContent = "";
+      search.disabled = !messages.length;
+      updateCount();
+      if (!messages.length) {
+        setStatus(`No chat messages found in ${file.name}`, true);
+        return;
+      }
+      const note = result.skipped ? `, skipped ${result.skipped} bad lines` : "";
+      setStatus(`Chat: ${file.name}${note}`);
+      sync();
+    };
+    reader.onerror = () => setStatus(`Could not read ${file.name}`, true);
+    reader.readAsText(file);
+  }
+
+  function handleFile(file) {
+    if (!file) return;
+    const isJson = /\.(json|jsonl)$/i.test(file.name) || file.type === "application/json";
+    if (isJson) loadChat(file);
+    else if (file.type.startsWith("video/") || /\.(mp4|webm|mkv|mov|m4v)$/i.test(file.name)) loadVideo(file);
+    else setStatus(`Unsupported file: ${file.name}`, true);
+  }
+
+  $("video-file").addEventListener("change", (e) => handleFile(e.target.files[0]));
+  $("chat-file").addEventListener("change", (e) => handleFile(e.target.files[0]));
+
+  // Drag and drop anywhere on the page. Either file type works.
+  ["dragenter", "dragover"].forEach((ev) =>
+    window.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((ev) =>
+    window.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+  window.addEventListener("drop", (e) => {
+    for (const f of e.dataTransfer.files) handleFile(f);
+  });
+
+  // ---------- Sync and interaction ----------
+
+  video.addEventListener("timeupdate", sync);
+  video.addEventListener("seeked", sync);
+  video.addEventListener("error", () => setStatus("Video could not be played. Try MP4 or WebM.", true));
+
+  chat.addEventListener("click", (e) => {
+    const row = e.target.closest(".row");
+    if (!row) return;
+    const msg = messages[Number(row.dataset.index)];
+    if (!msg) return;
+    video.currentTime = msg.offsetMs / 1000;
+  });
+  chat.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    const row = e.target.closest(".row");
+    if (row) row.click();
+  });
+
+  search.addEventListener("input", () => {
+    for (const row of chat.children) applyFilter(row);
+  });
+
+  // ---------- Fullscreen (video and chat together) ----------
+
+  const mainEl = document.querySelector("main");
+  const fsButton = $("fullscreen");
+
+  // Fallback when the browser refuses the Fullscreen API (some embedded panes do):
+  // the same main area fills the window with fixed positioning.
+  let fillMode = false;
+
+  function setFillMode(on) {
+    fillMode = on;
+    mainEl.classList.toggle("is-fullscreen", on);
+    updateFullscreenButton();
+  }
+
+  function isFullscreen() {
+    return document.fullscreenElement === mainEl || fillMode;
+  }
+
+  function updateFullscreenButton() {
+    fsButton.textContent = isFullscreen() ? "Exit Fullscreen Chat" : "Fullscreen Chat";
+  }
+
+  function toggleFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+      return;
+    }
+    if (fillMode) {
+      setFillMode(false);
+      return;
+    }
+    if (mainEl.requestFullscreen) {
+      mainEl.requestFullscreen().catch(() => setFillMode(true));
+    } else {
+      setFillMode(true);
+    }
+  }
+
+  fsButton.addEventListener("click", toggleFullscreen);
+  document.addEventListener("fullscreenchange", updateFullscreenButton);
+  // F toggles fullscreen unless the user is typing in the filter box. Escape leaves the fallback mode.
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && fillMode) { setFillMode(false); return; }
+    if (e.key.toLowerCase() !== "f" || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.closest && e.target.closest("input, textarea")) return;
+    toggleFullscreen();
+  });
+
+  // Expose the parser for tests in the browser console.
+  window.__higginsParse = parseChat;
+})();
+</script>
+</body>
+</html>
