@@ -2,6 +2,10 @@
 
 Every change bumps the patch number by 0.0.1, and each version has an annotated git tag.
 
+## v1.0.9
+
+- README design reference is worded as a Mainframe design reference.
+
 ## v1.0.8
 
 - README design reference points to the Mainframe design system.
